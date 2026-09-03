@@ -102,3 +102,29 @@ Finally, the scoring engine priced them out—showing that retrying the UPI clus
 see the outputs here - [test o/p image](./ss/phase2tests.png)
 
 ---
+
+### Phase 3: Forecasting & Play Ranking
+
+Now that I had the leaks detected and scored, I hit the next big product question: **If a merchant has multiple leaks happening at once, what do they actually do first?**
+
+Most analytics tools fail here. They either dump a list of 20 alerts or just sort by the biggest raw rupee amount. But sorting purely by money is flawed:
+- A ₹1,20,000 card decline issue might take weeks of manual risk-rule tuning and only has a 35% win rate.
+- Meanwhile, a ₹31,000 UPI timeout cluster has 100% statistical confidence and can be fixed right now with low operational effort.
+
+So I spent this phase building the intelligence that turns raw anomalies into ranked, prioritized "Recovery Plays":
+- **Balanced ranking formula:** In `ranking.py`, I weighted each opportunity across three dimensions: 
+  $$\text{Score} = 0.5 \times \text{normalized ₹ impact} + 0.3 \times \text{confidence} + 0.2 \times \text{feasibility}$$
+  This pushed the high-confidence, low-effort UPI smart retries straight to **#1**, while keeping the harder card declines and disputes lower down where they belong.
+- **Holt-Winters time-series projections:** In `forecasting.py`, I used classical exponential smoothing via `statsmodels` to project historical weekly losses 4 weeks into the future. It generates two curves:
+  1. *Baseline*: "If you do nothing, you continue bleeding ₹X/week."
+  2. *Scenario*: "If you execute this play, the loss curve bends downward by ₹Y."
+- **The Batch Evaluation Harness:** To prove this wasn't just working by lucky accident, I wrote `batch_eval.py`—a complete test harness that runs the whole loop end-to-end against the Phase 1 ground truth.
+
+**How I tested it:**
+I ran `python batch_eval.py` in the terminal to evaluate the whole pipeline. 
+The harness classified the 175 payments, isolated the 4 clusters, generated the 4 ranked plays, and simulated execution.
+The result: an **87.8% identification precision** (capturing ₹1,73,900 of the ₹1,98,000 ground truth), predicting ₹93,094 in recovery, and pulling back ₹76,792 in actual recovered funds with an average forecast error of only ~₹4,000. 
+
+see the outputs here - [batch eval report](./ss/phase3tests.png)
+
+---
