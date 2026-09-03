@@ -125,6 +125,31 @@ I ran `python batch_eval.py` in the terminal to evaluate the whole pipeline.
 The harness classified the 175 payments, isolated the 4 clusters, generated the 4 ranked plays, and simulated execution.
 The result: an **87.8% identification precision** (capturing ₹1,73,900 of the ₹1,98,000 ground truth), predicting ₹93,094 in recovery, and pulling back ₹76,792 in actual recovered funds with an average forecast error of only ~₹4,000. 
 
-see the outputs here - [batch eval report](./ss/phase3tests.png)
+see the outputs here - [batch eval report](./ss/batcheval1.png) and [batch eval report](./ss/batcheval2.png)
+
+---
+
+### Phase 4: AI Copilot & Action Gateway
+
+This was the phase where the AI was finally introduced. But remembering the core architectural rule: **The AI is autonomous in analysis, but strictly forbidden from being autonomous with money.**
+
+In fintech, you don't let an LLM do financial math, and you definitely don't let it trigger bank actions unmonitored. So Phase 4 was built around two disciplined components:
+- **The Grounded AI Copilot (`copilot.py` & `llm_service.py`):** 
+  Instead of asking an LLM "how much can I recover?", all the numbers ($\text{₹}$ amounts, Z-scores, Holt-Winters projections) are pre-computed deterministically by the Python services first. They get injected into the prompt as immutable facts. The LLM's only job is synthesis: translating technical gateway errors into plain business English, explaining *why* a play is recommended, and answering free-form merchant questions without hallucinations.
+- **The Gated Action Gateway (`action.py`):**
+  An advisor that just talks is just a dashboard with a chat widget. What makes this a co-pilot is the execution button. But before any action can fire, it has to pass through strict safety guardrails:
+  1. *Idempotency*: Generates a deterministic SHA-256 key (`play_id:action:segment`). If a network blip or double-click happens, the database UNIQUE constraint stops it dead. No accidental double retries.
+  2. *Pre-approved whitelist*: Only vetted action types (`retry`, `route_change`, `capture_payment`, etc.) are executable.
+  3. *Stopping rules*: A hard cap of 2 attempts per play, and an immediate kill-switch if diagnosis confidence drops below the 0.3 floor.
+  4. *Audit logging*: Every execution writes an immutable before/after snapshot and verified recovery amount to `AuditLog`.
+
+**How I tested it:**
+I tested the safety loop directly from the terminal. 
+First, I ran the pipeline to generate fresh plays. I checked eligibility on the top UPI retry play—all checks passed. 
+Then I executed it: the gateway verified the outcome, logged the recovery of ₹31,038, and updated the state. 
+Immediately after, I tried executing it a second time. The idempotency guard caught it instantly and blocked the action (`Play already executed`). 
+Finally, I asked the Copilot a free-form question; it parsed the pre-computed play facts and returned a clear, direct recommendation without fabricating a single number.
+
+see the outputs here - [phase 4 test output](./ss/phase4_tests.png)
 
 ---
