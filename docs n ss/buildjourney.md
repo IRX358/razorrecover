@@ -184,5 +184,33 @@ see the outputs here - [phase 5 frontend screens](./ss/phase5_frontend.png)
 
 ---
 
+### Phase 6: The Agentic Layer — Teaching the System to Act and Learn
+
+Up until Phase 5, the system was smart but passive. It could analyze, detect, score, rank, and explain — but it would only move when the merchant clicked a button. That's fine for a dashboard, but I wanted something that felt genuinely autonomous.
+
+So Phase 6 was about adding two new agents that run alongside the existing pipeline:
+
+The **Feedback Agent** is basically the system's memory. Every time a recovery play gets executed, the system now compares what it *predicted* would happen against what *actually* happened. If the gap is big enough (more than 10 percentage points of drift), it auto-recalibrates the assumption rates. So the `action_effectiveness` for UPI retries might start at `0.60` (from NPCI benchmarks), but after 14 real executions, the system learns it's actually `0.72` for *this* merchant's traffic and adjusts itself. The guardrails are tight — minimum 5 samples before any recalibration, hard floor of 5%, hard ceiling of 95%, and a blended update formula (60% new data, 40% old assumption) so one weird outlier can't swing the whole model. Every calibration gets logged to `calibration_logs` with full math transparency.
+
+The **Reactive Agent** is the real game-changer. Instead of waiting for the merchant to open the dashboard, it monitors webhook events in real-time and makes autonomous decisions within a 3-tier safety model. Tier 1 (amount ≤ ₹5,000 and high confidence) auto-executes retries immediately — zero merchant intervention. Tier 2 (mid-range amounts or moderate confidence) creates a recommended play for the merchant to review. Tier 3 (high-value or low confidence) just alerts them. And there's a circuit breaker built in: if 90%+ of recent decisions for a bank segment were failures, the agent automatically halts all retries for that segment because the bank infra is probably down. No point hammering a dead gateway and eating rate limits.
+
+I tested the reactive agent by simulating 4 webhook events — got a mix of Tier 2 recommendations and one policy block (a card payment that exceeded the auto-retry cap). The agent activity feed logged every decision with full reasoning. The audit trail shows `actor: "reactive_agent"` entries right alongside the `actor: "merchant"` ones. 
+
+---
+
+### Phase 7: Conversational Policy Control — Typing a Sentence to Change Automation
+
+This was the final piece that tied everything together, and honestly it's probably the best demo moment in the whole project.
+
+The idea: let the merchant control the Reactive Agent's behavior just by chatting with the Copilot. Type "turn off auto-retry for card failures" — and it actually turns off. Type "only auto-retry UPI failures under ₹500" — and the amount cap updates immediately. No settings page, no config file, no restart.
+
+The implementation is surprisingly clean. I added an `agent_policies` table where each policy key maps to an enabled/disabled flag and an optional amount cap. Before the Copilot forwards a question to the LLM, it first passes through a deterministic intent parser (regex patterns that detect "turn off", "enable", "pause", "under ₹X" etc.) and maps them to the right policy key. If it's a policy command, the toggle happens instantly and the merchant gets a confirmation. If it's a normal question like "where am I losing money?", it falls through to the regular LLM path untouched.
+
+The key architectural win here: the LLM still never decides anything financial. The policy control is purely deterministic regex mapping. The LLM's job stays exactly what it was — explain and synthesize. This feature just adds a new intent type to the existing Copilot, pointing at a settings table the Reactive Agent already reads. The constraint is reinforced, not weakened.
+
+I tested it with three commands: disabling card retries, setting a ₹500 cap on UPI retries, and re-enabling card retries. All three worked instantly. Then I verified that a normal copilot question ("where am I losing the most money?") correctly bypassed the policy parser and went to the LLM instead.
+
+---
+
 
 

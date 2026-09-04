@@ -23,6 +23,9 @@ from services.ranking import rank_and_create_plays, get_play_summary
 from services.copilot import answer_question, generate_all_reasoning
 from services.action import check_eligibility, execute_play
 from services.forecasting import generate_forecast
+from services.feedback import run_feedback_loop, get_calibration_history
+from services.reactive_agent import handle_webhook_event, get_agent_activity
+from services.policy_control import try_parse_policy_intent, get_all_policies, seed_default_policies
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -154,9 +157,14 @@ def run_full_pipeline(db: Session = Depends(get_db)):
     }
 
 
-# Grounded LLM copilot question answering
+# Grounded LLM copilot with integrated policy control
 @app.post("/api/copilot/ask")
 def ask_copilot(request: QuestionRequest, db: Session = Depends(get_db)):
+    # First check if this is a policy control command
+    policy_result = try_parse_policy_intent(request.question, db)
+    if policy_result:
+        return {"question": request.question, "answer": policy_result["confirmation"], "policy_update": policy_result}
+
     answer = answer_question(request.question, db)
     return {"question": request.question, "answer": answer}
 
@@ -186,7 +194,13 @@ def execute_recovery_play(play_id: str, db: Session = Depends(get_db)):
     if not eligibility["eligible"]:
         raise HTTPException(status_code=400, detail=eligibility["reason"])
 
-    return execute_play(play, db)
+    result = execute_play(play, db)
+
+    # After execution, run the feedback loop to check for assumption drift
+    feedback_result = run_feedback_loop(db)
+    result["feedback"] = feedback_result
+
+    return result
 
 
 # Audit trail
@@ -223,19 +237,93 @@ def get_assumptions(db: Session = Depends(get_db)):
     ]
 
 
-# Webhook endpoint for live Razorpay events
+# Webhook endpoint — dispatches to the Reactive Recovery Agent
 @app.post("/webhook")
 async def razorpay_webhook(request: Request, db: Session = Depends(get_db)):
     payload = await request.json()
     event = payload.get("event", "")
 
+    # Extract payment ID from Razorpay's nested payload format
+    entity = payload.get("payload", {}).get("payment", {}).get("entity", {})
+    payment_id = entity.get("id", "") or payload.get("payment_id", "")
+
+    # Dispatch to Reactive Agent for eligible events
+    agent_result = None
+    if event in ("payment.failed", "payment.authorized") and payment_id:
+        agent_result = handle_webhook_event(payment_id, event, db)
+
     log = models.AuditLog(
+        id=models.generate_id(),
         actor="razorpay_webhook",
-        details_json={"event": event, "payload_keys": list(payload.keys())},
+        details_json={
+            "event": event, "payment_id": payment_id,
+            "agent_decision": agent_result.get("decision") if agent_result else None,
+        },
     )
     db.add(log)
     db.commit()
-    return {"status": "received", "event": event}
+    return {"status": "received", "event": event, "agent_decision": agent_result}
+
+
+# --- Feedback Agent endpoints ---
+@app.post("/api/feedback/run")
+def trigger_feedback_loop(db: Session = Depends(get_db)):
+    return run_feedback_loop(db)
+
+@app.get("/api/feedback/history")
+def get_feedback_history(db: Session = Depends(get_db)):
+    return get_calibration_history(db)
+
+
+# --- Reactive Agent endpoints ---
+@app.get("/api/agent/activity")
+def get_agent_decisions(db: Session = Depends(get_db)):
+    return get_agent_activity(db)
+
+@app.post("/api/agent/simulate")
+def simulate_webhook_event(db: Session = Depends(get_db)):
+    """Generates a synthetic failed payment and runs it through the Reactive Agent."""
+    import random
+
+    banks = ["HDFC", "ICICI", "SBI", "AXIS", "KOTAK"]
+    methods = ["upi", "card", "netbanking"]
+    errors = ["upi_timeout", "gateway_error", "card_declined_risk", "payment_failed"]
+
+    pay_id = f"pay_sim_{uuid.uuid4().hex[:10]}"
+    order_id = f"order_sim_{uuid.uuid4().hex[:10]}"
+    amount = round(random.uniform(200, 8000), 2)
+    method = random.choice(methods)
+    bank = random.choice(banks)
+    error = random.choice(errors)
+
+    order = models.Order(
+        id=order_id, amount=amount, amount_paid=0, amount_due=amount, status="attempted",
+    )
+    payment = models.Payment(
+        id=pay_id, order_id=order_id, amount=amount,
+        status="failed", captured=False, method=method, bank=bank,
+        error_source="gateway", error_step="payment_processing", error_reason=error,
+    )
+    db.add(order)
+    db.add(payment)
+    db.commit()
+
+    result = handle_webhook_event(pay_id, "payment.failed", db)
+    return {
+        "simulated_payment": {"id": pay_id, "amount": amount, "method": method, "bank": bank, "error": error},
+        "agent_decision": result,
+    }
+
+
+# --- Policy Control endpoints ---
+@app.get("/api/agent/policies")
+def get_policies(db: Session = Depends(get_db)):
+    return get_all_policies(db)
+
+@app.post("/api/agent/policies/seed")
+def seed_policies(db: Session = Depends(get_db)):
+    seed_default_policies(db)
+    return {"status": "ok", "policies": get_all_policies(db)}
 
 
 # Dynamic Configuration Models & Endpoints

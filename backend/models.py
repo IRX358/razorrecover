@@ -165,3 +165,46 @@ class AuditLog(Base):
     action_id = Column(String, nullable=True)
     timestamp = Column(DateTime, default=lambda: datetime.datetime.now(datetime.UTC))
     details_json = Column(JSON)
+
+
+# Records every assumption recalibration by the Feedback Agent
+class CalibrationLog(Base):
+    __tablename__ = "calibration_logs"
+    id = Column(String, primary_key=True, default=generate_id)
+    cause_type = Column(String, index=True)
+    field_name = Column(String)
+    old_value = Column(Float)
+    new_value = Column(Float)
+    realized_rate = Column(Float)
+    sample_size = Column(Integer)
+    drift = Column(Float)
+    created_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.UTC))
+
+
+# Records every autonomous decision made by the Reactive Agent
+class AgentDecision(Base):
+    __tablename__ = "agent_decisions"
+    id = Column(String, primary_key=True, default=generate_id)
+    payment_id = Column(String, index=True)
+    event_type = Column(String)
+    tier = Column(Integer)
+    decision = Column(String)
+    reason = Column(Text)
+    action_id = Column(String, nullable=True)
+    segment_key = Column(String, nullable=True)
+    circuit_breaker_state = Column(String, default="closed")
+    created_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.UTC))
+
+
+# Merchant-configurable policies that govern the Reactive Agent's behavior
+# Managed via Copilot chat ("turn off auto-retry for card failures")
+class AgentPolicy(Base):
+    __tablename__ = "agent_policies"
+    id = Column(String, primary_key=True, default=generate_id)
+    policy_key = Column(String, unique=True, index=True)  # e.g. "auto_retry.upi_timeout"
+    enabled = Column(Boolean, default=True)
+    max_amount = Column(Float, nullable=True)              # optional amount cap for this policy
+    description = Column(Text, nullable=True)
+    updated_by = Column(String, default="system")          # "merchant", "copilot", "system"
+    updated_at = Column(DateTime, default=lambda: datetime.datetime.now(datetime.UTC))
+
