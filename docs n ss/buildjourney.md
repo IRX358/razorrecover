@@ -4,7 +4,18 @@
 
 ---> give it a try it's intresting
 
-When I first started thinking about what to build for this buildathon, I didn't want to build just another generic finance app or an accounting dashboard that spits out balance sheets. That's boring, and honestly, merchants already have tools like Tally or QuickBooks for that.
+So before I even picked this problem, I actually had a completely different idea in mind. 
+
+I was thinking of building an edge / local AI voice payment agent. The whole concept was to create a conversational payment assistant with multilingual speech for people who struggle with conventional digital payment apps—especially older people, people who need accessibility options, or anyone who feels way more comfortable using their local language instead of clicking around confusing screens. The AI would listen to voice instructions, confirm the transaction, and guide the user through the payment step-by-step. 
+
+I was particularly interested in running the AI locally on-device (Edge AI). Running it on device would keep sensitive personal conversations and payment details from being sent over to servers unnecessarily, and it would also cut down latency. 
+
+So that was my plan. But then I saw that Razorpay was already heavily invested in voice-first and conversational commerce through their partnership with Sarvam, and they were already actively announcing it. Once I saw that, I thought of stepping back from it. There was really no point building something Razorpay was already doing and announcing. 
+
+So I stepped back to find a fresh problem.
+
+ANd now , 
+I didn't want to build just another generic finance app or an accounting dashboard that spits out balance sheets. That's boring, and honestly, merchants already have tools like Tally or QuickBooks for that.
 
 I wanted to solve an actual friction point inside payment gateways. I kept thinking about how people actually interact with gateway dashboards like Razorpay. If you've ever run an online business or talked to a merchant (business where there is no dedicated tech finance managing person), you know the feeling: you log in, and you can see charts, total volumes, and success rate percentages like "82.4%". 
 
@@ -37,6 +48,8 @@ I could see the stories now:
 ```
 
 That was the "aha!" moment for me. Razorpay already records the exact failure reasons, error steps, and transaction metadata. The raw data exists. But it sits in isolated rows. It doesn't guide the merchant on what to do.
+
+Once I decided on this problem statement, I also did a thorough research on how Razorpay currently handles merchants. I looked into the webhooks part, the redirection of payment gateway vs the in-app checkout screen, the portals, and all those things. I wanted to understand how Razorpay actually works in these parts because I didn't want to build a separate SaaS application. I wanted to build an integratable extension for current Razorpay's platform.
 
 I wanted to build an active enhancement layer directly on top of Razorpay. Not a dashboard that just shows you more graphs, but a co-pilot that scans the leaks, quantifies them in actual rupees (₹), and hands you a ready-to-execute "Recovery Play." 
 I started late , had very less time but started thinking I'll pull off howmuch ever i can and add rest to the "future scope" haha.. (not bad right?)
@@ -153,3 +166,6 @@ Finally, I asked the Copilot a free-form question; it parsed the pre-computed pl
 see the outputs here - [phase 4 test output](./ss/phase4_tests.png)
 
 ---
+
+
+

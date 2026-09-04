@@ -5,10 +5,14 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from fastapi import FastAPI, Depends, HTTPException, Request
+from fastapi import FastAPI, Depends, HTTPException, Request, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
+import datetime
+import uuid
+import io
+import pandas as pd
 from database import engine, get_db
 import models
 
@@ -231,8 +235,150 @@ async def razorpay_webhook(request: Request, db: Session = Depends(get_db)):
     )
     db.add(log)
     db.commit()
-
     return {"status": "received", "event": event}
+
+
+# Dynamic Configuration Models & Endpoints
+class LlmKeyRequest(BaseModel):
+    provider: str = "gemini"
+    api_key: str
+
+class RazorpayConfigRequest(BaseModel):
+    key_id: str
+    key_secret: str
+    webhook_secret: str = ""
+
+@app.get("/api/config/status")
+def get_config_status():
+    gemini_key = os.getenv("GEMINI_API_KEY", "").strip()
+    anthropic_key = os.getenv("ANTHROPIC_API_KEY", "").strip()
+    has_llm = bool(gemini_key or anthropic_key)
+    rzp_key = os.getenv("RAZORPAY_KEY_ID", "").strip()
+    return {
+        "has_llm_key": has_llm,
+        "llm_provider": os.getenv("LLM_PROVIDER", "gemini"),
+        "has_razorpay_keys": bool(rzp_key),
+        "razorpay_key_id": (rzp_key[:6] + "...") if rzp_key else ""
+    }
+
+@app.post("/api/config/llm-key")
+def set_llm_key(req: LlmKeyRequest):
+    key = req.api_key.strip()
+    provider = req.provider.lower()
+    if provider == "claude":
+        os.environ["ANTHROPIC_API_KEY"] = key
+        os.environ["LLM_PROVIDER"] = "claude"
+    else:
+        os.environ["GEMINI_API_KEY"] = key
+        os.environ["LLM_PROVIDER"] = "gemini"
+    
+    # Also write to backend/.env if exists
+    try:
+        env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+        if os.path.exists(env_path):
+            with open(env_path, "r") as f:
+                lines = f.readlines()
+            new_lines = []
+            target_var = "ANTHROPIC_API_KEY" if provider == "claude" else "GEMINI_API_KEY"
+            found_target = False
+            for line in lines:
+                if line.startswith(f"{target_var}="):
+                    new_lines.append(f"{target_var}={key}\n")
+                    found_target = True
+                elif line.startswith("LLM_PROVIDER="):
+                    new_lines.append(f"LLM_PROVIDER={provider}\n")
+                else:
+                    new_lines.append(line)
+            if not found_target:
+                new_lines.append(f"{target_var}={key}\n")
+            with open(env_path, "w") as f:
+                f.writelines(new_lines)
+    except Exception:
+        pass
+    return {"status": "success", "has_llm_key": True, "provider": provider}
+
+@app.post("/api/config/razorpay")
+def set_razorpay_config(req: RazorpayConfigRequest):
+    os.environ["RAZORPAY_KEY_ID"] = req.key_id.strip()
+    os.environ["RAZORPAY_KEY_SECRET"] = req.key_secret.strip()
+    if req.webhook_secret:
+        os.environ["RAZORPAY_WEBHOOK_SECRET"] = req.webhook_secret.strip()
+    
+    try:
+        env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+        if os.path.exists(env_path):
+            with open(env_path, "r") as f:
+                lines = f.readlines()
+            new_lines = []
+            for line in lines:
+                if line.startswith("RAZORPAY_KEY_ID="):
+                    new_lines.append(f"RAZORPAY_KEY_ID={req.key_id.strip()}\n")
+                elif line.startswith("RAZORPAY_KEY_SECRET="):
+                    new_lines.append(f"RAZORPAY_KEY_SECRET={req.key_secret.strip()}\n")
+                elif line.startswith("RAZORPAY_WEBHOOK_SECRET="):
+                    new_lines.append(f"RAZORPAY_WEBHOOK_SECRET={req.webhook_secret.strip()}\n")
+                else:
+                    new_lines.append(line)
+            with open(env_path, "w") as f:
+                f.writelines(new_lines)
+    except Exception:
+        pass
+
+    return {"status": "connected", "key_id": req.key_id[:6] + "..."}
+
+@app.post("/api/seed")
+def seed_and_run(db: Session = Depends(get_db)):
+    from seed import seed_data
+    seed_data()
+    return run_full_pipeline(db)
+
+@app.post("/api/upload-transactions")
+async def upload_transactions(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    contents = await file.read()
+    if file.filename.endswith(".xlsx") or file.filename.endswith(".xls"):
+        df = pd.read_excel(io.BytesIO(contents))
+    else:
+        df = pd.read_csv(io.BytesIO(contents))
+    
+    now = datetime.datetime.now(datetime.UTC)
+    count = 0
+    for _, row in df.iterrows():
+        pay_id = str(row.get("payment_id", f"pay_up_{uuid.uuid4().hex[:10]}"))
+        order_id = str(row.get("order_id", f"order_up_{uuid.uuid4().hex[:10]}"))
+        try:
+            amount = float(row.get("amount", 1000))
+        except (ValueError, TypeError):
+            amount = 1000.0
+        status = str(row.get("status", "failed")).lower()
+        method = str(row.get("method", "upi")).lower()
+        bank = str(row.get("bank", "HDFC"))
+        error_reason = str(row.get("error_reason", "upi_timeout")) if status == "failed" else None
+        error_source = str(row.get("error_source", "gateway")) if status == "failed" else None
+
+        order = models.Order(
+            id=order_id, amount=amount,
+            amount_paid=amount if status == "captured" else 0,
+            amount_due=0 if status == "captured" else amount,
+            status="paid" if status == "captured" else "attempted",
+            created_at=now
+        )
+        payment = models.Payment(
+            id=pay_id, order_id=order_id, amount=amount,
+            status=status, captured=(status == "captured"),
+            method=method, bank=bank,
+            error_source=error_source, error_step="payment_processing",
+            error_reason=error_reason, created_at=now
+        )
+        db.add(order)
+        db.add(payment)
+        count += 1
+    db.commit()
+    pipeline_res = run_full_pipeline(db)
+    return {
+        "status": "success",
+        "records_imported": count,
+        "pipeline": pipeline_res
+    }
 
 
 def _play_to_dict(play: models.RecoveryPlay, rank: int) -> dict:
