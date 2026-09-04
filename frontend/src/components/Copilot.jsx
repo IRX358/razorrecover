@@ -24,11 +24,12 @@ import crystalMonolith from "../assets/icn2.png";
  */
 
 const SUGGESTED_QUESTIONS = [
-  "Where am I losing the most money?",
   "What happens if I enable smart retry?",
-  "Which recovery play has the highest ROI?",
-  "Why are HDFC UPI payments failing?",
+  "Turn off auto-retry for card failures",
+  "Only auto-retry UPI under ₹500",
+  "Where am I losing the most money?",
   "How much can I recover this month?",
+  "Which recovery play has the highest ROI?"
 ];
 
 export default function Copilot() {

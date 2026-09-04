@@ -16,6 +16,7 @@ import {
   Loader2,
   Sparkles,
   ArrowRight,
+  ShieldCheck,
 } from "lucide-react";
 import crystalMonolith from "../assets/icn1.png";
 
@@ -141,6 +142,10 @@ export default function Dashboard() {
         <div className="navbar-actions">
           {pipelineRun ? (
             <>
+              <div className="nav-status-pill agent-active">
+                <ShieldCheck size={14} className="text-success" style={{ marginRight: '6px' }} />
+                <span>Reactive Agent: Active</span>
+              </div>
               <div className="nav-status-pill">
                 <span className="status-live-dot" />
                 <span>{currentSource || "Active Pipeline"}</span>
