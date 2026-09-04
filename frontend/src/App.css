@@ -203,6 +203,123 @@ body {
   padding: 5px 12px;
 }
 
+/* Interactive Reactive Agent Master Toggle */
+.nav-agent-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid var(--border-crystal);
+  background: #FFFFFF;
+}
+
+.nav-agent-toggle-btn.agent-on {
+  background: rgba(5, 150, 105, 0.06);
+  border-color: rgba(5, 150, 105, 0.35);
+  color: var(--navy-900);
+}
+
+.nav-agent-toggle-btn.agent-on:hover {
+  background: rgba(5, 150, 105, 0.12);
+  border-color: rgba(5, 150, 105, 0.5);
+}
+
+.nav-agent-toggle-btn.agent-off {
+  background: #F8FAFC;
+  border-color: #CBD5E1;
+  color: var(--text-muted);
+}
+
+.nav-agent-toggle-btn.agent-off:hover {
+  background: #F1F5F9;
+  border-color: #94A3B8;
+}
+
+.agent-toggle-icon {
+  flex-shrink: 0;
+}
+
+.agent-toggle-text {
+  font-size: 0.78rem;
+  color: var(--navy-900);
+}
+
+.agent-toggle-status {
+  font-weight: 700;
+  font-size: 0.72rem;
+  padding: 1px 6px;
+  border-radius: 2px;
+  letter-spacing: 0.05em;
+}
+
+.agent-toggle-status.status-on {
+  background: rgba(5, 150, 105, 0.15);
+  color: #047857;
+}
+
+.agent-toggle-status.status-off {
+  background: rgba(148, 163, 184, 0.2);
+  color: #64748B;
+}
+
+.agent-toggle-switch {
+  width: 28px;
+  height: 16px;
+  border-radius: 10px;
+  background: #CBD5E1;
+  position: relative;
+  transition: background-color 0.2s ease;
+  display: inline-block;
+  margin-left: 2px;
+}
+
+.agent-toggle-switch.switched-on {
+  background: #059669;
+}
+
+.agent-toggle-switch-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.agent-toggle-switch.switched-on .agent-toggle-switch-thumb {
+  transform: translateX(12px);
+}
+
+/* Reset Data Button */
+.btn-nav-reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #FFFFFF;
+  color: var(--text-secondary);
+  border: 1px solid #CBD5E1;
+  border-radius: var(--radius-sm);
+  padding: 7px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-nav-reset:hover:not(:disabled) {
+  background: #FEE2E2;
+  border-color: #FCA5A5;
+  color: #B91C1C;
+}
+
 /* Crystal Buttons */
 .btn-nav-primary {
   display: inline-flex;

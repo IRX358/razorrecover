@@ -15,6 +15,7 @@ from models import AgentPolicy, AuditLog, generate_id
 
 # All valid policy keys the system recognizes
 VALID_POLICY_KEYS = {
+    "reactive_agent.master_active",
     "auto_retry.upi_timeout",
     "auto_retry.gateway_error",
     "auto_retry.card_decline",
@@ -37,6 +38,9 @@ AMOUNT_PATTERN = r"(?:under|below|less than|max|limit|cap)\s*₹?\s*(\d[\d,]*)"
 
 # Maps natural language fragments to policy keys
 INTENT_TO_KEY = {
+    "reactive agent": "reactive_agent.master_active",
+    "reactive": "reactive_agent.master_active",
+    "agent": "reactive_agent.master_active",
     "retry upi": "auto_retry.upi_timeout",
     "retry for upi": "auto_retry.upi_timeout",
     "upi retry": "auto_retry.upi_timeout",

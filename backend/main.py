@@ -24,7 +24,12 @@ from services.copilot import answer_question, generate_all_reasoning
 from services.action import check_eligibility, execute_play
 from services.forecasting import generate_forecast
 from services.feedback import run_feedback_loop, get_calibration_history
-from services.reactive_agent import handle_webhook_event, get_agent_activity
+from services.reactive_agent import (
+    handle_webhook_event,
+    get_agent_activity,
+    is_agent_enabled,
+    set_agent_enabled,
+)
 from services.policy_control import try_parse_policy_intent, get_all_policies, seed_default_policies
 
 models.Base.metadata.create_all(bind=engine)
@@ -324,6 +329,38 @@ def get_policies(db: Session = Depends(get_db)):
 def seed_policies(db: Session = Depends(get_db)):
     seed_default_policies(db)
     return {"status": "ok", "policies": get_all_policies(db)}
+
+
+class AgentToggleRequest(BaseModel):
+    active: bool | None = None
+
+
+@app.get("/api/agent/status")
+def get_agent_toggle_status(db: Session = Depends(get_db)):
+    return {"active": is_agent_enabled(db)}
+
+
+@app.post("/api/agent/toggle")
+def toggle_agent(req: AgentToggleRequest = None, db: Session = Depends(get_db)):
+    curr = is_agent_enabled(db)
+    target = req.active if (req and req.active is not None) else not curr
+    set_agent_enabled(target, db, updated_by="merchant_ui")
+    return {"status": "ok", "active": target}
+
+
+@app.post("/api/clear")
+def clear_all_data(db: Session = Depends(get_db)):
+    """Wipes all transaction and pipeline data so the app returns to a clean ingestion state."""
+    for table in [
+        models.AuditLog, models.Action, models.Forecast,
+        models.RecoveryPlay, models.Evidence,
+        models.RevenueClassification, models.Dispute,
+        models.Settlement, models.Refund,
+        models.Payment, models.Order, models.AgentDecision,
+    ]:
+        db.query(table).delete()
+    db.commit()
+    return {"status": "cleared", "message": "All transaction and pipeline data cleared."}
 
 
 # Dynamic Configuration Models & Endpoints

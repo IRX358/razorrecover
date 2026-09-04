@@ -111,3 +111,25 @@ export async function uploadTransactionsFile(file) {
   return res.json();
 }
 
+export async function clearData() {
+  const res = await fetch(`${API_BASE}/api/clear`, { method: "POST" });
+  if (!res.ok) throw new Error("Failed to clear data");
+  return res.json();
+}
+
+export async function getAgentStatus() {
+  const res = await fetch(`${API_BASE}/api/agent/status`);
+  if (!res.ok) throw new Error("Failed to fetch agent status");
+  return res.json();
+}
+
+export async function toggleAgentStatus(active) {
+  const res = await fetch(`${API_BASE}/api/agent/toggle`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(typeof active === "boolean" ? { active } : {}),
+  });
+  if (!res.ok) throw new Error("Failed to toggle agent status");
+  return res.json();
+}
+

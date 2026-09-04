@@ -34,12 +34,60 @@ AUTO_RETRYABLE = {"upi_timeout", "gateway_error", "server_error", "gateway_timeo
 TERMINAL_ERRORS = {"user_cancelled", "insufficient_funds", "invalid_vpa", "payment_cancelled"}
 
 
+def is_agent_enabled(db: Session) -> bool:
+    """Checks the master toggle for the Reactive Agent."""
+    policy = db.query(AgentPolicy).filter(AgentPolicy.policy_key == "reactive_agent.master_active").first()
+    if policy is not None:
+        return policy.enabled
+    return True
+
+
+def set_agent_enabled(enabled: bool, db: Session, updated_by: str = "merchant") -> bool:
+    """Toggles or sets the master state for the Reactive Agent and audits the change."""
+    policy = db.query(AgentPolicy).filter(AgentPolicy.policy_key == "reactive_agent.master_active").first()
+    old_state = policy.enabled if policy else True
+    if policy:
+        policy.enabled = enabled
+        policy.updated_by = updated_by
+        policy.updated_at = datetime.datetime.now(datetime.UTC)
+    else:
+        policy = AgentPolicy(
+            id=generate_id(),
+            policy_key="reactive_agent.master_active",
+            enabled=enabled,
+            description="Master kill-switch / activation toggle for the autonomous Reactive Recovery Agent",
+            updated_by=updated_by,
+        )
+        db.add(policy)
+    
+    audit = AuditLog(
+        id=generate_id(),
+        actor=f"{updated_by}_agent_toggle",
+        details_json={
+            "action": "enabled" if enabled else "disabled",
+            "old_state": old_state,
+            "new_state": enabled,
+            "policy_key": "reactive_agent.master_active"
+        }
+    )
+    db.add(audit)
+    db.commit()
+    return enabled
+
+
 def handle_webhook_event(payment_id: str, event_type: str, db: Session) -> dict:
     """
     Main entry point called when a webhook event arrives.
     Classifies the payment, determines the autonomy tier, checks policies
     and circuit breakers, then acts accordingly.
     """
+    if not is_agent_enabled(db):
+        return _record_decision(
+            db, payment_id, event_type, tier=0,
+            decision="agent_disabled",
+            reason="Reactive Agent is toggled OFF by merchant"
+        )
+
     payment = db.query(Payment).filter(Payment.id == payment_id).first()
     if not payment:
         return _record_decision(

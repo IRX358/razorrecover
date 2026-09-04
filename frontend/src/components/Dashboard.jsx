@@ -4,6 +4,9 @@ import {
   getSummary,
   getPlays,
   generateReasoning,
+  clearData,
+  getAgentStatus,
+  toggleAgentStatus,
 } from "../api";
 import MetricFunnel from "./MetricFunnel";
 import PlayCard from "./PlayCard";
@@ -17,6 +20,8 @@ import {
   Sparkles,
   ArrowRight,
   ShieldCheck,
+  ShieldOff,
+  RotateCcw,
 } from "lucide-react";
 import crystalMonolith from "../assets/icn1.png";
 
@@ -39,20 +44,71 @@ export default function Dashboard() {
   const [reasoningLoading, setReasoningLoading] = useState(false);
   const [dataSourceOpen, setDataSourceOpen] = useState(true);
   const [currentSource, setCurrentSource] = useState(null);
+  const [agentActive, setAgentActive] = useState(true);
+  const [agentToggling, setAgentToggling] = useState(false);
 
-  // Load initial summary & plays on mount
+  // Load initial summary & agent status on mount
   useEffect(() => {
     getSummary()
       .then((data) => {
         setSummary(data);
-        if (data.total_payments > 0) {
+        if (data && data.total_payments > 0) {
           loadPlays();
           setCurrentSource("Sample Database");
           setDataSourceOpen(false); // Compact mode if data is already present
+        } else {
+          // Empty or fresh DB: show clean start screen with Data Ingestion selector open
+          setPipelineRun(false);
+          setDataSourceOpen(true);
+          setPlays([]);
+          setPlaysSummary(null);
+          setCurrentSource(null);
+        }
+      })
+      .catch(() => {
+        setPipelineRun(false);
+        setDataSourceOpen(true);
+      });
+
+    getAgentStatus()
+      .then((res) => {
+        if (res && typeof res.active === "boolean") {
+          setAgentActive(res.active);
         }
       })
       .catch(() => {});
   }, []);
+
+  const handleToggleAgent = async () => {
+    setAgentToggling(true);
+    try {
+      const res = await toggleAgentStatus(!agentActive);
+      setAgentActive(res.active);
+    } catch (err) {
+      console.error("Failed to toggle agent:", err);
+    } finally {
+      setAgentToggling(false);
+    }
+  };
+
+  const handleResetData = async () => {
+    if (window.confirm("Clear all transactions and return to the data ingestion start screen?")) {
+      setLoading(true);
+      try {
+        await clearData();
+        setSummary(null);
+        setPlays([]);
+        setPlaysSummary(null);
+        setPipelineRun(false);
+        setCurrentSource(null);
+        setDataSourceOpen(true); // Open the Data Source selection panel on start screen
+      } catch (err) {
+        console.error("Failed to clear data:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
 
   const loadPlays = async () => {
     try {
@@ -140,16 +196,46 @@ export default function Dashboard() {
         </div>
 
         <div className="navbar-actions">
+          {/* Interactive Master Toggle for Autonomous Reactive Agent */}
+          <button
+            type="button"
+            className={`nav-agent-toggle-btn ${agentActive ? "agent-on" : "agent-off"}`}
+            onClick={handleToggleAgent}
+            disabled={agentToggling}
+            title={agentActive ? "Click to Pause Reactive Agent" : "Click to Turn ON Reactive Agent"}
+          >
+            {agentActive ? (
+              <ShieldCheck size={14} className="agent-toggle-icon text-success" />
+            ) : (
+              <ShieldOff size={14} className="agent-toggle-icon text-muted" />
+            )}
+            <span className="agent-toggle-text">Reactive Agent:</span>
+            <span className={`agent-toggle-status ${agentActive ? "status-on" : "status-off"}`}>
+              {agentActive ? "ON" : "OFF"}
+            </span>
+            <span className={`agent-toggle-switch ${agentActive ? "switched-on" : "switched-off"}`}>
+              <span className="agent-toggle-switch-thumb" />
+            </span>
+          </button>
+
           {pipelineRun ? (
             <>
-              <div className="nav-status-pill agent-active">
-                <ShieldCheck size={14} className="text-success" style={{ marginRight: '6px' }} />
-                <span>Reactive Agent: Active</span>
-              </div>
               <div className="nav-status-pill">
                 <span className="status-live-dot" />
                 <span>{currentSource || "Active Pipeline"}</span>
               </div>
+
+              {/* Reset Data Button to return to clean state at any time */}
+              <button
+                type="button"
+                className="btn-nav-reset"
+                onClick={handleResetData}
+                disabled={loading}
+                title="Clear all transactions and return to clean data ingestion"
+              >
+                <RotateCcw size={13} />
+                <span>Reset Data</span>
+              </button>
 
               {/* Single primary button to re-run analysis */}
               <button
