@@ -167,5 +167,22 @@ see the outputs here - [phase 4 test output](./ss/phase4_tests.png)
 
 ---
 
+### Phase 5: Complete Frontend Flow & The Razorpay Look
+
+Once the backend engine and safety rails were solid, I tackled the frontend. Honestly, the initial generic dark UI felt off—it had emojis everywhere and looked too much like a carnival dashboard rather than a high-trust fintech product. 
+
+So for Phase 5, I completely ripped that down and rebuilt the entire interface to mimic Razorpay's official design language. Clean off-whites, icy crystal blues, dark navy text, and that signature electric royal blue. I avoided bubbly rounded corners and went for sleek, sharp geometric cuts with subtle glassmorphism so it looks engineered and razor-sharp.
+
+I also built out the full screen flow end-to-end:
+- **3 clear ways to get data in**: Instead of forcing one path, the merchant gets three clear options right at the top—drop their transaction CSV/XLSX, connect live Razorpay API & webhook credentials directly from the UI, or hit one button to run the 175-payment benchmark dataset with known ground truth. I made sure to clean up any duplicate buttons so the action hierarchy stays dead simple.
+- **Top Metric Funnel & KPIs**: Directly answers how much is leaking, how much is eligible, and what's realistically expected back.
+- **Ranked Play Stack**: Cards sorted by actual rupee return with diagnosis confidence, root-cause notes, and the one-click action execution button.
+- **Sticky AI Copilot on the right**: Kept the copilot pinned to the right taking up 75% height so it stays right next to you while scrolling down through plays. And if someone doesn't have an LLM API key handy, the UI doesn't break—it gives them a clean choice between plugging in a Gemini/Claude key or using our deterministic fallback templates with zero hallucinations.
+- **Prominent 3D Crystal Assets**: Instead of burying the crystal prism and diamond renders as faint background noise, I brought them front and center as hero showpieces for the platform.
+
+see the outputs here - [phase 5 frontend screens](./ss/phase5_frontend.png)
+
+---
+
 
 

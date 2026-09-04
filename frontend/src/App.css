@@ -1,8 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 /* ==========================================================================
-   RAZORRECOVER - FINTECH CRYSTAL GLASS DESIGN SYSTEM
-   Engineered for Razorpay Buildathon
+   RAZORRECOVER - FINTECH CRYSTAL DESIGN SYSTEM
    Palette: White, Crystal Glass Blue, Razorpay Electric Blue, Midnight Navy
    Aesthetic: Sleek, Sharp Crystal Cuts, Glassmorphism, Zero Soft Rounded Corners
    ========================================================================== */
@@ -10,7 +9,7 @@
 :root {
   /* Core Foundation */
   --bg-page: #F6F9FD;
-  --bg-card: rgba(255, 255, 255, 0.88);
+  --bg-card: rgba(255, 255, 255, 0.92);
   --bg-card-solid: #FFFFFF;
   --bg-glass-ice: rgba(235, 245, 255, 0.7);
   --bg-glass-subtle: rgba(255, 255, 255, 0.6);
@@ -49,9 +48,8 @@
   --border-crystal: rgba(12, 131, 255, 0.16);
   --border-crystal-subtle: rgba(10, 37, 64, 0.08);
   --border-crystal-focus: rgba(12, 131, 255, 0.4);
-  --border-highlight: rgba(255, 255, 255, 0.9);
 
-  /* Sleek, Sharp Crystal Geometry - NO Soft Bubbles */
+  /* Sleek, Sharp Crystal Geometry - NO Soft Bubbly Pills */
   --radius-xs: 2px;
   --radius-sm: 4px;
   --radius-md: 6px;
@@ -78,35 +76,7 @@ body {
 }
 
 /* ==========================================================================
-   CRYSTAL BACKGROUND GLOW & AMBIENCE
-   ========================================================================== */
-.crystal-bg-glow {
-  position: fixed;
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.04;
-  background-size: contain;
-  background-repeat: no-repeat;
-  filter: contrast(140%) brightness(120%);
-  mix-blend-mode: multiply;
-}
-
-.crystal-glow-left {
-  top: -100px;
-  left: -80px;
-  width: 500px;
-  height: 700px;
-}
-
-.crystal-glow-right {
-  top: 150px;
-  right: -60px;
-  width: 550px;
-  height: 750px;
-}
-
-/* ==========================================================================
-   APP CONTAINER & NAVIGATION
+   APP CONTAINER & TOP NAVBAR
    ========================================================================== */
 .dashboard-root {
   min-height: 100vh;
@@ -117,7 +87,7 @@ body {
 }
 
 .navbar {
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border-crystal);
@@ -199,6 +169,40 @@ body {
   gap: 12px;
 }
 
+.nav-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--navy-900);
+  background: #F1F5F9;
+  border: 1px solid var(--border-crystal-subtle);
+  border-radius: var(--radius-xs);
+  padding: 6px 12px;
+}
+
+.status-live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--verified-green);
+  box-shadow: 0 0 6px rgba(5, 150, 105, 0.6);
+}
+
+.nav-ready-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--brand-blue);
+  background: var(--brand-ice-glass);
+  border: 1px solid var(--border-crystal);
+  border-radius: var(--radius-xs);
+  padding: 5px 12px;
+}
+
 /* Crystal Buttons */
 .btn-nav-primary {
   display: inline-flex;
@@ -209,7 +213,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: var(--radius-sm);
   padding: 8px 18px;
-  font-size: 0.85rem;
+  font-size: 0.84rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -220,27 +224,6 @@ body {
   background: var(--brand-blue-hover);
   box-shadow: 0 4px 14px rgba(12, 131, 255, 0.35);
   transform: translateY(-1px);
-}
-
-.btn-nav-outline {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  background: #FFFFFF;
-  color: var(--navy-900);
-  border: 1px solid var(--border-crystal);
-  border-radius: var(--radius-sm);
-  padding: 8px 16px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.btn-nav-outline:hover {
-  background: var(--brand-blue-light);
-  border-color: var(--brand-blue);
-  color: var(--brand-blue);
 }
 
 .btn-crystal-primary {
@@ -277,11 +260,6 @@ body {
   font-size: 0.8rem;
 }
 
-.btn-crystal-primary.lg {
-  padding: 12px 26px;
-  font-size: 0.95rem;
-}
-
 .btn-crystal-secondary {
   display: inline-flex;
   align-items: center;
@@ -313,8 +291,8 @@ body {
   border: 1px solid var(--border-crystal-subtle);
   border-radius: var(--radius-sm);
   padding: 8px 16px;
-  font-size: 0.85rem;
-  font-weight: 500;
+  font-size: 0.84rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -325,13 +303,8 @@ body {
 }
 
 .btn-crystal-ghost.compact {
-  padding: 6px 12px;
+  padding: 5px 12px;
   font-size: 0.78rem;
-}
-
-.btn-crystal-ghost.lg {
-  padding: 12px 24px;
-  font-size: 0.95rem;
 }
 
 .btn-block {
@@ -340,7 +313,7 @@ body {
 
 /* ==========================================================================
    MAIN DASHBOARD LAYOUT
-   ========================================================================= */
+   ========================================================================== */
 .dashboard-main {
   max-width: 1480px;
   margin: 0 auto;
@@ -352,8 +325,75 @@ body {
 }
 
 /* ==========================================================================
-   DATA INGESTION OPTIONS PANEL (3 OPTIONS)
+   DATA INGESTION PANEL & COMPACT STATUS BAR
    ========================================================================== */
+.data-source-compact-bar {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--border-crystal);
+  border-radius: var(--radius-sm);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: var(--shadow-crystal);
+  transition: all 0.15s ease;
+}
+
+.compact-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.compact-icon-img {
+  width: 28px;
+  height: 28px;
+  object-fit: cover;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border-crystal);
+}
+
+.compact-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.compact-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+}
+
+.compact-val {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--navy-900);
+}
+
+.btn-switch-source {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #FFFFFF;
+  color: var(--brand-blue);
+  border: 1px solid var(--border-crystal);
+  border-radius: var(--radius-xs);
+  padding: 6px 14px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-switch-source:hover {
+  background: var(--brand-blue-light);
+  border-color: var(--brand-blue);
+}
+
+/* Full Ingestion Options Panel */
 .data-source-wrapper {
   background: var(--bg-card);
   backdrop-filter: blur(14px);
@@ -370,7 +410,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: linear-gradient(90deg, rgba(235, 245, 255, 0.6) 0%, rgba(255, 255, 255, 0.8) 100%);
+  background: linear-gradient(90deg, rgba(235, 245, 255, 0.7) 0%, rgba(255, 255, 255, 0.9) 100%);
   border-bottom: 1px solid var(--border-crystal);
 }
 
@@ -424,26 +464,6 @@ body {
   font-size: 0.8rem;
   color: var(--text-secondary);
   margin: 0;
-}
-
-.btn-toggle-panel {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: #FFFFFF;
-  color: var(--navy-800);
-  border: 1px solid var(--border-crystal);
-  border-radius: var(--radius-sm);
-  padding: 6px 14px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.btn-toggle-panel:hover {
-  background: var(--brand-blue-light);
-  color: var(--brand-blue);
 }
 
 .data-source-container {
@@ -728,16 +748,30 @@ body {
   margin-top: 4px;
 }
 
-/* Sample Tab Info */
+/* Sample Tab Info & Prominently Displayed bg2.png */
 .sample-info-layout {
   display: grid;
   grid-template-columns: 1fr 280px;
-  gap: 24px;
+  gap: 28px;
   align-items: center;
 }
 
+.sample-title-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--brand-blue);
+  background: var(--brand-ice-glass);
+  padding: 2px 8px;
+  border-radius: var(--radius-xs);
+  margin-bottom: 6px;
+}
+
 .sample-text-block h5 {
-  font-size: 0.95rem;
+  font-size: 0.98rem;
   font-weight: 700;
   color: var(--navy-900);
   margin: 0 0 6px 0;
@@ -773,18 +807,41 @@ body {
   left: 0;
 }
 
-.sample-action-card {
-  background: linear-gradient(135deg, rgba(235, 245, 255, 0.8) 0%, rgba(255, 255, 255, 0.9) 100%);
-  border: 1px solid var(--border-crystal);
-  border-radius: var(--radius-sm);
-  padding: 18px;
+/* Crystal Artwork Showcase for bg2.png */
+.sample-crystal-showcase {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  box-shadow: 0 2px 8px rgba(12, 131, 255, 0.08);
 }
 
-.sample-truth-stat {
+.crystal-artwork-card {
+  background: linear-gradient(180deg, rgba(235, 245, 255, 0.9) 0%, #FFFFFF 100%);
+  border: 1px solid var(--border-crystal);
+  border-radius: var(--radius-sm);
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  box-shadow: 0 4px 16px rgba(12, 131, 255, 0.08);
+}
+
+.crystal-gem-img {
+  width: 84px;
+  height: 120px;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 18px rgba(12, 131, 255, 0.28));
+  animation: gemFloat 4s ease-in-out infinite;
+  margin-bottom: 8px;
+}
+
+@keyframes gemFloat {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+.crystal-stat-overlay {
+  text-align: center;
   display: flex;
   flex-direction: column;
 }
@@ -809,7 +866,7 @@ body {
   color: var(--text-muted);
 }
 
-/* Crystal Alerts */
+/* Alerts */
 .crystal-alert {
   display: flex;
   align-items: center;
@@ -827,7 +884,7 @@ body {
 }
 
 .crystal-alert.error {
-  background: var(--risk-red-bg, rgba(217, 56, 58, 0.06));
+  background: rgba(217, 56, 58, 0.06);
   color: var(--risk-red);
   border: 1px solid var(--risk-border);
 }
@@ -1341,19 +1398,6 @@ body {
   position: relative;
 }
 
-.copilot-bg-watermark {
-  position: absolute;
-  top: 20px;
-  right: -30px;
-  width: 260px;
-  height: 260px;
-  background-size: contain;
-  background-repeat: no-repeat;
-  opacity: 0.035;
-  pointer-events: none;
-  filter: contrast(130%);
-}
-
 .copilot-header {
   padding: 16px 20px;
   background: linear-gradient(90deg, rgba(235, 245, 255, 0.8) 0%, rgba(255, 255, 255, 0.9) 100%);
@@ -1512,7 +1556,7 @@ body {
   margin-top: 4px;
 }
 
-/* Screen 1: Mode Selector Prompt (Enter Key vs Fallback) */
+/* Screen 1: Mode Selector Prompt (Showcases bg2.png) */
 .copilot-mode-selector {
   padding: 20px;
   overflow-y: auto;
@@ -1527,17 +1571,18 @@ body {
   padding: 6px 0;
 }
 
-.selector-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: var(--radius-xs);
-  background: var(--brand-ice-glass);
-  color: var(--brand-blue);
-  border: 1px solid var(--border-crystal);
+.copilot-monolith-showcase {
   display: flex;
-  align-items: center;
   justify-content: center;
-  margin: 0 auto 10px;
+  margin-bottom: 12px;
+}
+
+.copilot-monolith-img {
+  width: 90px;
+  height: 130px;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 20px rgba(12, 131, 255, 0.35));
+  animation: monolithFloat 4s ease-in-out infinite;
 }
 
 .mode-selector-prompt h4 {
@@ -1820,27 +1865,33 @@ body {
 }
 
 /* ==========================================================================
-   INITIAL HERO / EMPTY STATE BEFORE SCAN
+   HERO SHOWCASE PANEL - PROMINENTLY SHOWCASING bg1.png ARTWORK
    ========================================================================== */
-.initial-hero-card {
+.hero-showcase-panel {
   background: #FFFFFF;
   border: 1px solid var(--border-crystal);
   border-radius: var(--radius-md);
-  padding: 48px 40px;
+  padding: 36px 40px;
   box-shadow: var(--shadow-crystal);
-  text-align: center;
-  max-width: 900px;
-  margin: 20px auto 0;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 36px;
   align-items: center;
+  position: relative;
+  overflow: hidden;
 }
 
-.hero-badge {
+.hero-showcase-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hero-tag-wrap {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 800;
   letter-spacing: 0.08em;
   padding: 3px 10px;
@@ -1848,69 +1899,145 @@ body {
   color: var(--brand-blue);
   border: 1px solid var(--border-crystal);
   border-radius: var(--radius-xs);
-  margin-bottom: 14px;
+  width: fit-content;
 }
 
-.initial-hero-card h2 {
-  font-size: 1.8rem;
+.hero-showcase-title {
+  font-size: 1.85rem;
   font-weight: 800;
   color: var(--navy-900);
   letter-spacing: -0.02em;
-  margin: 0 0 10px 0;
+  line-height: 1.25;
+  margin: 0;
 }
 
-.hero-lead {
+.hero-showcase-lead {
   font-size: 0.92rem;
   color: var(--text-secondary);
-  max-width: 650px;
-  margin: 0 0 24px 0;
   line-height: 1.6;
+  margin: 0;
 }
 
-.hero-cta-row {
+.hero-showcase-lead em {
+  color: var(--brand-blue);
+  font-style: normal;
+  font-weight: 700;
+}
+
+.hero-action-hint {
   display: flex;
   align-items: center;
-  gap: 14px;
-  margin-bottom: 40px;
+  gap: 10px;
+  background: var(--brand-ice-glass);
+  border: 1px solid var(--border-crystal);
+  border-radius: var(--radius-xs);
+  padding: 10px 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--navy-900);
+  margin-top: 4px;
 }
 
-.hero-architecture-steps {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  width: 100%;
-  text-align: left;
-  border-top: 1px solid var(--border-crystal-subtle);
-  padding-top: 28px;
-}
-
-.arch-step {
+.hint-arrow {
+  color: var(--brand-blue);
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+}
+
+.hero-architecture-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.hero-arch-card {
   background: #F8FAFC;
   border: 1px solid var(--border-crystal-subtle);
-  border-radius: var(--radius-sm);
-  padding: 14px;
+  border-radius: var(--radius-xs);
+  padding: 12px;
 }
 
-.step-num {
-  font-size: 0.72rem;
+.arch-num {
+  font-size: 0.7rem;
   font-weight: 800;
   color: var(--brand-blue);
   font-family: var(--font-mono);
 }
 
-.step-title {
+.hero-arch-card h6 {
   font-size: 0.82rem;
   font-weight: 700;
   color: var(--navy-900);
+  margin: 2px 0;
 }
 
-.step-desc {
+.hero-arch-card p {
   font-size: 0.72rem;
   color: var(--text-muted);
-  line-height: 1.4;
+  margin: 0;
+  line-height: 1.35;
+}
+
+/* 3D Prism Monolith Showcase for bg1.png */
+.hero-artwork-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background: linear-gradient(180deg, rgba(235, 245, 255, 0.7) 0%, rgba(255, 255, 255, 0.98) 100%);
+  border: 1px solid var(--border-crystal);
+  border-radius: var(--radius-sm);
+  padding: 28px 24px;
+  box-shadow: 0 4px 20px rgba(12, 131, 255, 0.08);
+}
+
+.artwork-glow-pedestal {
+  position: absolute;
+  bottom: 44px;
+  width: 140px;
+  height: 20px;
+  background: radial-gradient(ellipse at center, rgba(12, 131, 255, 0.35) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+.hero-prism-monolith {
+  width: 160px;
+  height: 240px;
+  object-fit: contain;
+  position: relative;
+  z-index: 2;
+  filter: drop-shadow(0 12px 24px rgba(12, 131, 255, 0.3));
+  animation: monolithFloat 5s ease-in-out infinite;
+}
+
+@keyframes monolithFloat {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+.artwork-badge {
+  margin-top: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--navy-900);
+  background: #FFFFFF;
+  border: 1px solid var(--border-crystal);
+  border-radius: var(--radius-xs);
+  padding: 4px 12px;
+  box-shadow: 0 2px 8px rgba(10, 37, 64, 0.06);
+  z-index: 2;
+}
+
+.badge-crystal-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--brand-blue);
+  box-shadow: 0 0 6px rgba(12, 131, 255, 0.8);
 }
 
 /* Animations & Spinners */
@@ -1940,5 +2067,8 @@ body {
   }
   .metric-funnel {
     grid-template-columns: repeat(2, 1fr);
+  }
+  .hero-showcase-panel {
+    grid-template-columns: 1fr;
   }
 }

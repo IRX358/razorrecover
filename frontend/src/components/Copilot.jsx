@@ -6,16 +6,15 @@ import {
   Key,
   Cpu,
   ShieldCheck,
-  CheckCircle2,
   AlertCircle,
   Loader2,
-  RefreshCw,
   ChevronRight,
   Settings,
 } from "lucide-react";
 import { askCopilot, getConfigStatus, saveLlmKey } from "../api";
-import icn1 from "../assets/icn1.jpg";
-import bg2 from "../assets/bg2.jpg";
+import mainLogo from "../assets/icn1.png";
+import crystalMonolith from "../assets/icn2.png";
+
 
 /**
  * Copilot Chat
@@ -47,7 +46,7 @@ export default function Copilot() {
     {
       role: "assistant",
       content:
-        "I'm your Revenue Recovery Copilot. I can explain your recovery plays, " +
+        "I'm your RazorRecover Copilot. I can explain your recovery plays, " +
         "analyze revenue leaks, and help you decide which actions to take. " +
         "Every number I cite comes directly from your pre-computed analysis.",
     },
@@ -70,7 +69,6 @@ export default function Copilot() {
         setAgentMode("llm");
       }
     } catch {
-      // Default to fallback if backend unreachable
       setAgentMode("fallback");
     }
   };
@@ -159,28 +157,22 @@ export default function Copilot() {
 
   return (
     <div className="copilot-panel">
-      {/* Background crystal watermark */}
-      <div
-        className="copilot-bg-watermark"
-        style={{ backgroundImage: `url(${bg2})` }}
-      />
-
       {/* Copilot Header */}
       <div className="copilot-header">
         <div className="copilot-header-left">
           <div className="copilot-icon-badge">
-            <img src={icn1} alt="AI" className="copilot-avatar-img" />
+            <img src={mainLogo} alt="RazorRecover" className="copilot-avatar-img" />
           </div>
           <div>
             <div className="copilot-title-row">
-              <h3>Recovery Copilot</h3>
+              <h3>RazorRecover Copilot</h3>
               {agentMode === "llm" ? (
                 <span className="copilot-mode-tag llm">
                   <Sparkles size={11} /> Live AI ({provider})
                 </span>
               ) : agentMode === "fallback" ? (
                 <span className="copilot-mode-tag fallback">
-                  <Cpu size={11} /> Heuristic Fallback
+                  <Cpu size={11} /> Heuristic Mode
                 </span>
               ) : null}
             </div>
@@ -266,7 +258,7 @@ export default function Copilot() {
                 className="btn-crystal-ghost compact"
                 onClick={handleSelectFallback}
               >
-                Switch to Fallback
+                Use Fallback Template
               </button>
             </div>
           </form>
@@ -277,13 +269,17 @@ export default function Copilot() {
       {!agentMode && !hasLlmKey ? (
         <div className="copilot-mode-selector">
           <div className="mode-selector-prompt">
-            <div className="selector-icon">
-              <ShieldCheck size={32} />
+            {/* Fully and attractively displayed crystal monolith (icn1.png) */}
+            <div className="copilot-monolith-showcase">
+              <img
+                src={crystalMonolith}
+                alt="RazorRecover Crystal Monolith"
+                className="copilot-monolith-img"
+              />
             </div>
-            <h4>Configure Copilot Intelligence</h4>
+            <h4>Grounded Financial Intelligence</h4>
             <p>
-              Choose how the AI Recovery Copilot should analyze and reason over
-              your payment leaks.
+              Choose how the AI Recovery Copilot should reason over your payment leaks.
             </p>
           </div>
 

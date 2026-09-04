@@ -27,7 +27,7 @@ from services.forecasting import generate_forecast
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
-    title="RazorRecover - AI Revenue Recovery Co-Pilot",
+    title="RazorRecover - Autonomous Revenue Recovery Engine",
     description="Detect revenue leaks, quantify recoverable revenue, rank plays, execute bounded actions.",
     version="1.0.0",
 )

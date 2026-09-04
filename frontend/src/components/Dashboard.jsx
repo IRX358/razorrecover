@@ -4,35 +4,26 @@ import {
   getSummary,
   getPlays,
   generateReasoning,
-  seedSampleData,
 } from "../api";
 import MetricFunnel from "./MetricFunnel";
 import PlayCard from "./PlayCard";
 import Copilot from "./Copilot";
 import DataSourcePanel from "./DataSourcePanel";
 import {
-  Zap,
-  Play,
   RefreshCw,
-  Sliders,
-  TrendingUp,
-  Database,
   Search,
-  Sparkles,
-  ShieldAlert,
+  CheckCircle2,
   Loader2,
-  Layers,
+  Sparkles,
   ArrowRight,
 } from "lucide-react";
-import icn1 from "../assets/icn1.jpg";
-import bg1 from "../assets/bg1.jpg";
-import bg2 from "../assets/bg2.jpg";
+import crystalMonolith from "../assets/icn1.png";
 
 /**
  * Dashboard
  * ==========
  * The command center for RazorRecover.
- * Answers the three critical merchant questions:
+ * Answers three critical merchant questions:
  *   1. How much revenue is leaking?
  *   2. How much is recoverable?
  *   3. What exact play should I execute first?
@@ -46,7 +37,7 @@ export default function Dashboard() {
   const [pipelineRun, setPipelineRun] = useState(false);
   const [reasoningLoading, setReasoningLoading] = useState(false);
   const [dataSourceOpen, setDataSourceOpen] = useState(true);
-  const [currentSource, setCurrentSource] = useState("sample");
+  const [currentSource, setCurrentSource] = useState(null);
 
   // Load initial summary & plays on mount
   useEffect(() => {
@@ -55,7 +46,8 @@ export default function Dashboard() {
         setSummary(data);
         if (data.total_payments > 0) {
           loadPlays();
-          setDataSourceOpen(false); // Auto-collapse data source once data exists
+          setCurrentSource("Sample Database");
+          setDataSourceOpen(false); // Compact mode if data is already present
         }
       })
       .catch(() => {});
@@ -110,7 +102,8 @@ export default function Dashboard() {
   };
 
   const handleDataLoaded = async ({ source, pipeline, fileName }) => {
-    setCurrentSource(source === "upload" ? `File: ${fileName}` : source);
+    const sourceLabel = source === "upload" ? `File: ${fileName}` : source === "api" ? "Razorpay API" : "Sample Data";
+    setCurrentSource(sourceLabel);
     if (pipeline) {
       setSummary(pipeline.summary);
       setPlaysSummary(pipeline.play_summary);
@@ -119,7 +112,7 @@ export default function Dashboard() {
     } else {
       await handleRunPipeline();
     }
-    setDataSourceOpen(false); // collapse panel to reveal results
+    setDataSourceOpen(false); // Collapse to compact bar once data loads
   };
 
   const handlePlayExecuted = () => {
@@ -128,21 +121,11 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard-root">
-      {/* Subtle Crystal Backdrop Elements */}
-      <div
-        className="crystal-bg-glow crystal-glow-left"
-        style={{ backgroundImage: `url(${bg1})` }}
-      />
-      <div
-        className="crystal-bg-glow crystal-glow-right"
-        style={{ backgroundImage: `url(${bg2})` }}
-      />
-
-      {/* Top Navbar */}
+      {/* Top Navbar: Clean, no duplicate buttons */}
       <header className="navbar">
         <div className="navbar-brand">
           <div className="brand-logo-wrapper">
-            <img src={icn1} alt="RazorRecover Logo" className="brand-logo" />
+            <img src={crystalMonolith} alt="RazorRecover Logo" className="brand-logo" />
           </div>
           <div className="brand-text">
             <div className="brand-title-wrap">
@@ -156,33 +139,38 @@ export default function Dashboard() {
         </div>
 
         <div className="navbar-actions">
-          <button
-            className="btn-nav-outline"
-            onClick={() => setDataSourceOpen(!dataSourceOpen)}
-          >
-            <Database size={15} />
-            <span>Data Ingestion</span>
-          </button>
+          {pipelineRun ? (
+            <>
+              <div className="nav-status-pill">
+                <span className="status-live-dot" />
+                <span>{currentSource || "Active Pipeline"}</span>
+              </div>
 
-          <button
-            className={`btn-nav-primary ${loading ? "loading" : ""}`}
-            onClick={handleRunPipeline}
-            disabled={loading}
-          >
-            {loading ? (
-              <>
-                <Loader2 size={15} className="spin" />
-                <span>Analyzing Leaks...</span>
-              </>
-            ) : (
-              <>
-                <Play size={15} />
-                <span>
-                  {pipelineRun ? "Re-Run Pipeline" : "Run Recovery Pipeline"}
-                </span>
-              </>
-            )}
-          </button>
+              {/* Single primary button to re-run analysis */}
+              <button
+                className={`btn-nav-primary ${loading ? "loading" : ""}`}
+                onClick={handleRunPipeline}
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 size={14} className="spin" />
+                    <span>Analyzing...</span>
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw size={14} />
+                    <span>Re-Run Analysis</span>
+                  </>
+                )}
+              </button>
+            </>
+          ) : (
+            <div className="nav-ready-badge">
+              <Sparkles size={13} />
+              <span>Ready for Ingestion</span>
+            </div>
+          )}
         </div>
       </header>
 
@@ -197,7 +185,7 @@ export default function Dashboard() {
         />
 
         {/* Metric Funnel Section */}
-        {summary && (
+        {summary && pipelineRun && (
           <section className="section-funnel-area">
             <MetricFunnel summary={summary} playsSummary={playsSummary} />
 
@@ -279,56 +267,65 @@ export default function Dashboard() {
             </aside>
           </div>
         ) : (
-          /* Empty / Initial State before scan */
+          /* Initial State before data is loaded - Fully Showcases crystalMonolith (icn1.png) Artwork */
           !loading && (
-            <div className="initial-hero-card">
-              <div className="hero-badge">
-                <Search size={14} />
-                <span>ENGINE READY FOR SCAN</span>
+            <div className="hero-showcase-panel">
+              <div className="hero-showcase-content">
+                <div className="hero-tag-wrap">
+                  <Search size={14} />
+                  <span>AUTONOMOUS RECOVERY PLATFORM</span>
+                </div>
+
+                <h2 className="hero-showcase-title">
+                  Stop Leaving Money on the Payment Gateway
+                </h2>
+                <p className="hero-showcase-lead">
+                  Standard dashboards report failure rates like <em>82.4%</em>.
+                  RazorRecover digs deeper: classifying recoverable drops, spot-checking
+                  bank timeouts, and delivering bounded recovery actions with quantified ₹ returns.
+                </p>
+
+                <div className="hero-action-hint">
+                  <span className="hint-arrow"><ArrowRight size={15} /></span>
+                  <span>Select an Ingestion Method above (Drop CSV, Connect API, or click Sample Data) to launch the engine.</span>
+                </div>
+
+                {/* 4 Architecture Pillars */}
+                <div className="hero-architecture-grid">
+                  <div className="hero-arch-card">
+                    <span className="arch-num">01</span>
+                    <h6>Two-Dimensional Classifier</h6>
+                    <p>Distinguishes terminal fails from recoverable errors</p>
+                  </div>
+                  <div className="hero-arch-card">
+                    <span className="arch-num">02</span>
+                    <h6>Z-Score Anomaly Radar</h6>
+                    <p>Identifies bank-specific UPI timeout clusters</p>
+                  </div>
+                  <div className="hero-arch-card">
+                    <span className="arch-num">03</span>
+                    <h6>Deterministic Scorer</h6>
+                    <p>Calculates expected ₹ return using transparent assumptions</p>
+                  </div>
+                  <div className="hero-arch-card">
+                    <span className="arch-num">04</span>
+                    <h6>Bounded Action Copilot</h6>
+                    <p>Executes retries and disputes with strict audit logging</p>
+                  </div>
+                </div>
               </div>
 
-              <h2>Identify & Quantify Your Payment Leaks</h2>
-              <p className="hero-lead">
-                Choose an ingestion option above — upload your gateway transaction export,
-                connect live Razorpay API keys, or load the pre-computed benchmark dataset
-                to run root-cause anomaly detection.
-              </p>
-
-              <div className="hero-cta-row">
-                <button
-                  className="btn-crystal-primary lg"
-                  onClick={handleRunPipeline}
-                >
-                  <Play size={16} /> Run Discovery Scan
-                </button>
-                <button
-                  className="btn-crystal-ghost lg"
-                  onClick={() => setDataSourceOpen(true)}
-                >
-                  <Database size={16} /> Choose Ingestion Source
-                </button>
-              </div>
-
-              <div className="hero-architecture-steps">
-                <div className="arch-step">
-                  <span className="step-num">01</span>
-                  <span className="step-title">Two-Dimensional Classifier</span>
-                  <span className="step-desc">Distinguishes terminal fails from recoverable errors</span>
-                </div>
-                <div className="arch-step">
-                  <span className="step-num">02</span>
-                  <span className="step-title">Z-Score Anomaly Radar</span>
-                  <span className="step-desc">Identifies localized cluster drops across banks & methods</span>
-                </div>
-                <div className="arch-step">
-                  <span className="step-num">03</span>
-                  <span className="step-title">Deterministic Scorer</span>
-                  <span className="step-desc">Calculates expected ₹ return using transparent assumptions</span>
-                </div>
-                <div className="arch-step">
-                  <span className="step-num">04</span>
-                  <span className="step-title">Autonomous Recovery Copilot</span>
-                  <span className="step-desc">Executes bounded actions with real-time audit logging</span>
+              {/* Fully Displayed, Attractive 3D Crystal Prism Monolith Artwork (icn1.png) */}
+              <div className="hero-artwork-stage">
+                <div className="artwork-glow-pedestal" />
+                <img
+                  src={crystalMonolith}
+                  alt="RazorRecover Crystal Monolith"
+                  className="hero-prism-monolith"
+                />
+                <div className="artwork-badge">
+                  <span className="badge-crystal-dot" />
+                  <span>Deterministic Heuristic Engine</span>
                 </div>
               </div>
             </div>
