@@ -12,7 +12,7 @@ export default function MetricFunnel({ summary, playsSummary }) {
   const atRisk = summary?.revenue_at_risk || 0;
   const recoverable = playsSummary?.total_recoverable || 0;
   const expected = playsSummary?.total_expected_recovery || 0;
-  const actualRecovered = 0; // Updated dynamically after action execution
+  const actualRecovered = summary?.actual_recovered || 0;
 
   const metrics = [
     {
@@ -44,8 +44,8 @@ export default function MetricFunnel({ summary, playsSummary }) {
       label: "Actually Recovered",
       value: actualRecovered,
       icon: <CheckCircle2 size={15} className="metric-icon act-icon" />,
-      colorClass: "stat-recovered",
-      description: "Verified bank confirmation",
+      colorClass: `stat-recovered ${actualRecovered > 0 ? "recovered-active" : ""}`,
+      description: actualRecovered > 0 ? "Verified bank confirmation" : "Awaiting play execution",
     },
   ];
 

@@ -68,6 +68,10 @@ def answer_question(question: str, db: Session) -> str:
     if not plays:
         return "No recovery plays have been generated yet. Please run the analysis pipeline first."
 
+    from models import Action
+    executed_actions = db.query(Action).filter(Action.status.in_(["verified", "partial"])).all()
+    total_actual_recovered = sum(a.actual_recovered_amount or 0.0 for a in executed_actions)
+
     total_at_risk = sum(p.affected_amount for p in plays)
     total_recoverable = sum(p.eligible_recovery for p in plays)
     total_expected = sum(p.expected_recovery for p in plays)
@@ -79,7 +83,8 @@ def answer_question(question: str, db: Session) -> str:
             f"At risk: ₹{p.affected_amount:,.0f}, "
             f"Expected recovery: ₹{p.expected_recovery:,.0f}, "
             f"Action: {p.action_type}, "
-            f"Confidence: {p.diagnosis_confidence * 100:.0f}%"
+            f"Confidence: {p.diagnosis_confidence * 100:.0f}%, "
+            f"Status: {p.status}"
         )
 
     context_text = "\n".join(plays_summary)
@@ -90,6 +95,7 @@ AVAILABLE DATA (use ONLY these numbers — do not invent any):
 - Total revenue at risk: ₹{total_at_risk:,.0f}
 - Total recoverable (eligible): ₹{total_recoverable:,.0f}
 - Total expected recovery: ₹{total_expected:,.0f}
+- Total verified actual recovered to date: ₹{total_actual_recovered:,.0f}
 - Number of recovery plays: {len(plays)}
 - Top recovery plays:
 {context_text}

@@ -474,11 +474,17 @@ async def upload_transactions(file: UploadFile = File(...), db: Session = Depend
             amount = float(row.get("amount", 1000))
         except (ValueError, TypeError):
             amount = 1000.0
-        status = str(row.get("status", "failed")).lower()
-        method = str(row.get("method", "upi")).lower()
-        bank = str(row.get("bank", "HDFC"))
-        error_reason = str(row.get("error_reason", "upi_timeout")) if status == "failed" else None
-        error_source = str(row.get("error_source", "gateway")) if status == "failed" else None
+        status = str(row.get("status", "failed")).strip().lower()
+        method = str(row.get("method", "upi")).strip().lower()
+
+        bank_raw = row.get("bank")
+        bank = str(bank_raw).strip() if (pd.notna(bank_raw) and str(bank_raw).strip() != "" and str(bank_raw).lower() != "nan") else "HDFC"
+
+        error_reason_raw = row.get("error_reason")
+        error_reason = str(error_reason_raw).strip() if (status == "failed" and pd.notna(error_reason_raw) and str(error_reason_raw).strip() != "" and str(error_reason_raw).lower() != "nan") else ("upi_timeout" if status == "failed" else None)
+
+        error_source_raw = row.get("error_source")
+        error_source = str(error_source_raw).strip() if (status == "failed" and pd.notna(error_source_raw) and str(error_source_raw).strip() != "" and str(error_source_raw).lower() != "nan") else ("gateway" if status == "failed" else None)
 
         order = models.Order(
             id=order_id, amount=amount,
@@ -494,8 +500,8 @@ async def upload_transactions(file: UploadFile = File(...), db: Session = Depend
             error_source=error_source, error_step="payment_processing",
             error_reason=error_reason, created_at=now
         )
-        db.add(order)
-        db.add(payment)
+        db.merge(order)
+        db.merge(payment)
         count += 1
     db.commit()
     pipeline_res = run_full_pipeline(db)

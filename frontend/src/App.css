@@ -111,7 +111,7 @@ body {
   width: 36px;
   height: 36px;
   border-radius: var(--radius-sm);
-  background: var(--navy-900);
+  /* background: var(--navy-900); */
   padding: 2px;
   display: flex;
   align-items: center;

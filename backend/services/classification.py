@@ -7,7 +7,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from sqlalchemy.orm import Session
-from models import Payment, Refund, Settlement, Dispute, RevenueClassification
+from models import Payment, Refund, Settlement, Dispute, RevenueClassification, Action
 
 
 # Error reasons that indicate transient or route-changeable failures
@@ -224,6 +224,10 @@ def get_summary(db: Session) -> dict:
     revenue_at_risk = sum(rc.amount for rc in all_rc if rc.recovery_status in ("ELIGIBLE", "NOT_ELIGIBLE"))
     recoverable_revenue = sum(rc.amount for rc in all_rc if rc.recovery_status == "ELIGIBLE")
 
+    # Calculate actual recovered from verified executed actions
+    actions = db.query(Action).filter(Action.status.in_(["verified", "partial"])).all()
+    actual_recovered = sum(a.actual_recovered_amount or 0.0 for a in actions)
+
     by_state = {}
     by_recovery = {}
     by_leak = {}
@@ -237,6 +241,7 @@ def get_summary(db: Session) -> dict:
         "total_payments": total_payments,
         "revenue_at_risk": round(revenue_at_risk, 2),
         "recoverable_revenue": round(recoverable_revenue, 2),
+        "actual_recovered": round(actual_recovered, 2),
         "by_state": by_state,
         "by_recovery_status": by_recovery,
         "by_leak_category": by_leak,

@@ -25,15 +25,6 @@ import {
 } from "lucide-react";
 import crystalMonolith from "../assets/icn1.png";
 
-/**
- * Dashboard
- * ==========
- * The command center for RazorRecover.
- * Answers three critical merchant questions:
- *   1. How much revenue is leaking?
- *   2. How much is recoverable?
- *   3. What exact play should I execute first?
- */
 
 export default function Dashboard() {
   const [summary, setSummary] = useState(null);
@@ -70,13 +61,23 @@ export default function Dashboard() {
         setDataSourceOpen(true);
       });
 
-    getAgentStatus()
-      .then((res) => {
-        if (res && typeof res.active === "boolean") {
-          setAgentActive(res.active);
-        }
-      })
-      .catch(() => {});
+    refreshAgentStatus();
+  }, []);
+
+  const refreshAgentStatus = async () => {
+    try {
+      const res = await getAgentStatus();
+      if (res && typeof res.active === "boolean") {
+        setAgentActive(res.active);
+      }
+    } catch (err) {}
+  };
+
+  // Sync state whenever policy changes in copilot chat or background
+  useEffect(() => {
+    const handlePolicyChange = () => refreshAgentStatus();
+    window.addEventListener("agent-policy-updated", handlePolicyChange);
+    return () => window.removeEventListener("agent-policy-updated", handlePolicyChange);
   }, []);
 
   const handleToggleAgent = async () => {
@@ -172,8 +173,14 @@ export default function Dashboard() {
     setDataSourceOpen(false); // Collapse to compact bar once data loads
   };
 
-  const handlePlayExecuted = () => {
-    loadPlays();
+  const handlePlayExecuted = async () => {
+    await loadPlays();
+    try {
+      const updatedSummary = await getSummary();
+      setSummary(updatedSummary);
+    } catch (err) {
+      console.error("Failed to refresh summary after execution:", err);
+    }
   };
 
   return (
@@ -354,7 +361,7 @@ export default function Dashboard() {
 
             {/* Right Column: Sticky Copilot Window */}
             <aside className="column-copilot-sticky">
-              <Copilot />
+              <Copilot onPolicyChange={refreshAgentStatus} />
             </aside>
           </div>
         ) : (

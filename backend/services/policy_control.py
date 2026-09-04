@@ -1,8 +1,3 @@
-# Conversational Policy Control
-# Parses merchant intent from natural language and maps it to bounded
-# policy toggles that the Reactive Agent reads before acting.
-# The LLM never decides eligibility or calculates anything here —
-# it only maps intent to a policy key, which this module validates and applies.
 
 import sys
 import os
@@ -28,11 +23,11 @@ VALID_POLICY_KEYS = {
 
 # Patterns for intent detection (checked before LLM call for speed)
 DISABLE_PATTERNS = [
-    r"(?:turn off|disable|stop|pause|block|deactivate)\s+(?:auto[- ]?)?(\w[\w\s]*)",
+    r"(?:turn off|turn of|disable|stop|pause|block|deactivate|shut down|kill)\s+(?:auto[- ]?)?(\w[\w\s]*)",
     r"(?:don'?t|do not|never)\s+(?:auto[- ]?)?(\w[\w\s]*)",
 ]
 ENABLE_PATTERNS = [
-    r"(?:turn on|enable|start|resume|activate|allow)\s+(?:auto[- ]?)?(\w[\w\s]*)",
+    r"(?:turn on|enable|start|resume|activate|allow|power on)\s+(?:auto[- ]?)?(\w[\w\s]*)",
 ]
 AMOUNT_PATTERN = r"(?:under|below|less than|max|limit|cap)\s*₹?\s*(\d[\d,]*)"
 
@@ -64,11 +59,6 @@ INTENT_TO_KEY = {
 
 
 def try_parse_policy_intent(message: str, db: Session) -> dict | None:
-    """
-    Tries to parse a policy control intent from the merchant's chat message.
-    Returns a result dict if a policy action was taken, or None if the message
-    isn't a policy command (so the normal copilot can handle it).
-    """
     msg_lower = message.lower().strip()
 
     # Try to detect a disable intent

@@ -15,14 +15,6 @@ import { askCopilot, getConfigStatus, saveLlmKey } from "../api";
 import mainLogo from "../assets/icn1.png";
 import crystalMonolith from "../assets/icn2.png";
 
-
-/**
- * Copilot Chat
- * =============
- * Conversational interface for the AI Recovery Copilot.
- * Answers are strictly grounded in pre-computed facts.
- */
-
 const SUGGESTED_QUESTIONS = [
   "What happens if I enable smart retry?",
   "Turn off auto-retry for card failures",
@@ -32,7 +24,7 @@ const SUGGESTED_QUESTIONS = [
   "Which recovery play has the highest ROI?"
 ];
 
-export default function Copilot() {
+export default function Copilot({ onPolicyChange }) {
   // Config & State
   const [hasLlmKey, setHasLlmKey] = useState(false);
   const [provider, setProvider] = useState("gemini");
@@ -137,6 +129,14 @@ export default function Copilot() {
         ...prev,
         { role: "assistant", content: res.answer },
       ]);
+
+      // If a policy was updated or intent was executed, refresh system status immediately
+      if (res.policy_update || q.toLowerCase().includes("reactive") || q.toLowerCase().includes("auto-retry") || q.toLowerCase().includes("turn")) {
+        if (onPolicyChange) {
+          onPolicyChange(res.policy_update);
+        }
+        window.dispatchEvent(new CustomEvent("agent-policy-updated", { detail: res.policy_update }));
+      }
     } catch (err) {
       setMessages((prev) => [
         ...prev,
@@ -213,7 +213,7 @@ export default function Copilot() {
                 value={provider}
                 onChange={(e) => setProvider(e.target.value)}
               >
-                <option value="gemini">Google Gemini 2.5 Flash</option>
+                <option value="gemini">Google Gemini 3.6 Flash</option>
                 <option value="claude">Anthropic Claude Sonnet</option>
               </select>
             </div>
