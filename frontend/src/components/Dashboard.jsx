@@ -197,7 +197,7 @@ export default function Dashboard() {
               <span className="brand-tag">FINTECH AI</span>
             </div>
             <span className="brand-desc">
-              Autonomous Revenue Recovery Engine • Powered by Razorpay
+              Autonomous Revenue Recovery Engine • Made for RazorPay Buildathon
             </span>
           </div>
         </div>
